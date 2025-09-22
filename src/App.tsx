@@ -1,127 +1,164 @@
 import { useState } from "react";
 import "./App.css";
-import type { TaskProps } from "./components/Task";
-import type { EngineerProps } from "./components/Engineer";
 import Engineer from "./components/Engineer";
 import Task from "./components/Task";
+import {
+  addEngineer,
+  addUnassignedTask,
+  assignTask,
+  completeTask,
+  computeTotalCompletedMinutes,
+  computeTotalUnassignedMinutes,
+  removeEngineer,
+  type Model,
+} from "./models/Model";
+import { computeTotalAssignedMinutes } from "./models/Engineer";
+import CompleteTask from "./components/CompleteTask";
 
 function App() {
-  const [engineers, setEngineers] = useState<EngineerProps[]>([
-    {
-      name: "John Doe",
-      tasks: [
-        { name: "Write Tests", estimatedMinutesToComplete: 10 },
-        { name: "Debug the Bug", estimatedMinutesToComplete: 20 },
-      ],
-    },
-    {
-      name: "Ann Onymous",
-      tasks: [
-        { name: "Write More Tests", estimatedMinutesToComplete: 10 },
-        { name: "Debug More Bugs", estimatedMinutesToComplete: 20 },
-      ],
-    },
-    {
-      name: "Ada Lovelace",
-      tasks: [{ name: "Deploy the Program", estimatedMinutesToComplete: 5 }],
-    },
-  ]);
-  const [unassignedTasks, setUnassignedTasks] = useState<TaskProps[]>([
-    { name: "Be AGILE", estimatedMinutesToComplete: 10 },
-    { name: "Waterfall the KPIs", estimatedMinutesToComplete: 10e6 },
-    { name: "Circle Back", estimatedMinutesToComplete: 5 },
-  ]);
-  const [completedTasks, setCompletedTasks] = useState<TaskProps[]>([
-    {
-      name: "Get Coffee",
-      estimatedMinutesToComplete: 10,
-      actualMinutesToComplete: 20,
-    },
-    {
-      name: "Code",
-      estimatedMinutesToComplete: 20,
-      actualMinutesToComplete: 30,
-    },
-  ]);
+  const [model, setModel] = useState<Model>({
+    engineers: [],
+    unassignedTasks: [],
+    completedTasks: [],
+  });
+  const [engineerName, setEngineerName] = useState("");
+  const [taskName, setTaskName] = useState("");
+  const [taskEstimatedMinutesToComplete, setTaskEstimatedMinutesToComplete] =
+    useState(0);
+  const [actualMinutestoComplete, setActualMinutesToComplete] = useState(0);
 
   return (
     <>
       <section>
         <h1>Engineers</h1>
         <ul>
-          {engineers.map((engineer, index) => (
+          {model.engineers.map((engineer, index) => (
             <li>
-              <Engineer key={index} {...engineer}></Engineer>
+              <div>
+                <b>
+                  {engineer.name} ({computeTotalAssignedMinutes(engineer)} min)
+                </b>
+                <button
+                  onClick={() => {
+                    setModel(removeEngineer(model, engineer));
+                  }}
+                >
+                  X
+                </button>
+                <ul>
+                  {engineer.tasks.map((task, index) => (
+                    <li>
+                      <Task key={index} {...task}></Task>
+                      <CompleteTask
+                        onComplete={(minutesToComplete) =>
+                          setModel(
+                            completeTask(
+                              model,
+                              task,
+                              minutesToComplete,
+                              engineer,
+                            ),
+                          )
+                        }
+                      ></CompleteTask>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </li>
           ))}
         </ul>
-        <form>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            setModel(addEngineer(model, { name: engineerName, tasks: [] }));
+          }}
+        >
           <fieldset>
             <legend>Add Engineer</legend>
             <div>
               <label htmlFor="engineer-name">Name</label>
-              <input id="engineer-name" type="text" />
+              <input
+                id="engineer-name"
+                type="text"
+                value={engineerName}
+                onChange={(e) => setEngineerName(e.target.value)}
+              />
             </div>
             <button type="submit">Add</button>
           </fieldset>
         </form>
       </section>
       <section>
-        <h1>
-          Unassigned Tasks (
-          {unassignedTasks.reduce(
-            (sum, task) => sum + task.estimatedMinutesToComplete,
-            0,
-          )}{" "}
-          min)
-        </h1>
+        <h1>Unassigned Tasks ({computeTotalUnassignedMinutes(model)} min)</h1>
         <ul>
-          {unassignedTasks.map((task, index) => (
+          {model.unassignedTasks.map((task, index) => (
             <li>
               <Task key={index} {...task}></Task>
               <button>X</button>
               <div>
                 <label htmlFor="assign-task">Assign to </label>
-                <select name="assign-task" id="assign-task">
+                <select
+                  name="assign-task"
+                  id="assign-task"
+                  onChange={(e) => {
+                    setModel(assignTask(model, task, parseInt(e.target.value)));
+                  }}
+                >
                   <option hidden disabled selected>
                     Select an Engineer
                   </option>
-                  {engineers.map((engineer, index) => (
-                    <option value={engineer.name}>{engineer.name}</option>
+                  {model.engineers.map((engineer, index) => (
+                    <option value={index}>{engineer.name}</option>
                   ))}
                 </select>
               </div>
             </li>
           ))}
         </ul>
-        <form>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            setModel(
+              addUnassignedTask(model, {
+                name: taskName,
+                estimatedMinutesToComplete: taskEstimatedMinutesToComplete,
+              }),
+            );
+          }}
+        >
           <fieldset>
             <legend>Add Task</legend>
             <div>
               <label htmlFor="task-name">Name</label>
-              <input id="task-name" type="text" />
+              <input
+                id="task-name"
+                type="text"
+                value={taskName}
+                onChange={(e) => setTaskName(e.target.value)}
+              />
             </div>
             <div>
               <label htmlFor="task-estimated-minutes-to-complete">
                 Estimated Minutes to Complete
               </label>
-              <input id="task-estimated-minutes-to-complete" type="number" />
+              <input
+                id="task-estimated-minutes-to-complete"
+                type="number"
+                value={taskEstimatedMinutesToComplete}
+                onChange={(e) =>
+                  setTaskEstimatedMinutesToComplete(parseInt(e.target.value))
+                }
+              />
             </div>
             <button type="submit">Add</button>
           </fieldset>
         </form>
       </section>
       <section>
-        <h1>
-          Completed Tasks (
-          {completedTasks.reduce(
-            (sum, task) => sum + (task.actualMinutesToComplete ?? 0),
-            0,
-          )}{" "}
-          min)
-        </h1>
+        <h1>Completed Tasks ({computeTotalCompletedMinutes(model)} min)</h1>
         <ul>
-          {completedTasks.map((task, index) => (
+          {model.completedTasks.map((task, index) => (
             <li>
               <Task key={index} {...task}></Task>
             </li>

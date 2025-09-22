@@ -1,14 +1,10 @@
-export type TaskProps = {
-  name: string;
-  estimatedMinutesToComplete: number;
-  actualMinutesToComplete?: number;
-};
+import type { Task } from "../models/Task";
 
 export default function Task({
   name,
   estimatedMinutesToComplete,
   actualMinutesToComplete,
-}: TaskProps) {
+}: Task) {
   return (
     <span>
       <b>{name}</b> — Estimate: {estimatedMinutesToComplete} min

@@ -1,18 +1,13 @@
-import type { TaskProps } from "./Task";
+import type { Engineer } from "../models/Engineer";
 import Task from "./Task";
 
-export type EngineerProps = {
-  name: string;
-  tasks: TaskProps[];
-};
-
-export default function Engineer({ name, tasks }: EngineerProps) {
+export default function Engineer({ name, tasks }: Engineer) {
   return (
     <div>
       <b>
         {name} (
         {tasks.reduce((sum, task) => sum + task.estimatedMinutesToComplete, 0)}{" "}
-        minutes)
+        min)
       </b>
       <button>X</button>
       <ul>
