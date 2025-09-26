@@ -1,6 +1,5 @@
 import { useState } from "react";
 import "./App.css";
-import Engineer from "./components/Engineer";
 import Task from "./components/Task";
 import {
   addEngineer,
@@ -25,14 +24,13 @@ function App() {
   const [taskName, setTaskName] = useState("");
   const [taskEstimatedMinutesToComplete, setTaskEstimatedMinutesToComplete] =
     useState(0);
-  const [actualMinutestoComplete, setActualMinutesToComplete] = useState(0);
 
   return (
     <>
       <section>
         <h1>Engineers</h1>
         <ul>
-          {model.engineers.map((engineer, index) => (
+          {model.engineers.map((engineer) => (
             <li>
               <div>
                 <b>
