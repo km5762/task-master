@@ -9,6 +9,7 @@ import {
   computeTotalCompletedMinutes,
   computeTotalUnassignedMinutes,
   removeEngineer,
+  removeUnassignedTask,
   type Model,
 } from "./models/Model";
 import { computeTotalAssignedMinutes } from "./models/Engineer";
@@ -40,6 +41,7 @@ function App() {
                   onClick={() => {
                     setModel(removeEngineer(model, engineer));
                   }}
+                  disabled={engineer.tasks.length > 0}
                 >
                   X
                 </button>
@@ -93,7 +95,13 @@ function App() {
           {model.unassignedTasks.map((task, index) => (
             <li>
               <Task key={index} {...task}></Task>
-              <button>X</button>
+              <button
+                onClick={() => {
+                  setModel(removeUnassignedTask(model, task));
+                }}
+              >
+                X
+              </button>
               <div>
                 <label htmlFor="assign-task">Assign to </label>
                 <select
